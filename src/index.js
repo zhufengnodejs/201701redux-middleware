@@ -13,20 +13,17 @@ let counter = (state=0,action)=>{
         return state;
     }
 }
-let logger = store => next => action =>{
-  console.log('before',store.getState());
-  console.log(action);
-  next(action);
-  console.log('after',store.getState());
+let thunk = store => next => action =>{
+    if(typeof action === 'function')
+        return action(next);
+    return next(action);
 }
-/*let logger= function(store){
-    return function(next){//next=dispatch
-        return function(action){
-
-        }
-    }
-}*/
-
-let store = applyMiddleware(logger)(createStore)(counter);
-store.dispatch({type:'ADD'});
-store.dispatch({type:'SUB'});
+let store = applyMiddleware(thunk)(createStore)(counter);
+store.subscribe(function(){
+    console.log(store.getState());
+})
+store.dispatch(function(dispatch){
+  setTimeout(function(){
+    dispatch({type:'ADD'});
+  },3000)
+});
