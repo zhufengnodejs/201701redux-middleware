@@ -20,12 +20,22 @@ let createStore = (reducer) => {
     }
 }
 //应用中间件
-let applyMiddleware = middleware => createStore => reducer => {
+let applyMiddleware = (...middlewares) => createStore => reducer => {
     let store = createStore(reducer);
-    middleware = middleware(store);
-    let dispatch = middleware(store.dispatch);
+    middlewares = middlewares.map(middleware=>middleware(store));
+    let dispatch = compose(...middlewares)(store.dispatch);
     return {
         ...store, dispatch
+    }
+}
+//[logger1,logger2]
+//store.dispatch
+function compose(...fns){
+    return function(...args){
+        let last = fns.pop();
+        return fns.reduceRight((composed,fn)=>{
+            return fn(composed);
+        },last(...args))
     }
 }
 export {createStore, applyMiddleware}

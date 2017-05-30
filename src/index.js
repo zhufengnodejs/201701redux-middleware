@@ -13,17 +13,24 @@ let counter = (state=0,action)=>{
         return state;
     }
 }
-let thunk = store => next => action =>{
-    if(typeof action === 'function')
-        return action(next);
-    return next(action);
+// logger2 before
+// logger1 before
+// 1
+// logger1 after
+// logger2 after
+let logger1 = store => next => action=>{
+    console.log('logger1 before',store.getState());
+    next(action);
+    console.log('logger1 after',store.getState());
 }
-let store = applyMiddleware(thunk)(createStore)(counter);
+let logger2 = store => next => action=>{
+    console.log('logger2 before',store.getState());
+    next(action);
+    console.log('logger2 after',store.getState());
+}
+//如果放入多个中间件的话，需从左向右依次执行
+let store = applyMiddleware(logger1,logger2)(createStore)(counter);
 store.subscribe(function(){
     console.log(store.getState());
 })
-store.dispatch(function(dispatch){
-  setTimeout(function(){
-    dispatch({type:'ADD'});
-  },3000)
-});
+store.dispatch({type:'ADD'});
